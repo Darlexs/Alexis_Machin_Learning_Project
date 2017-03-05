@@ -79,12 +79,37 @@ RFPred=confusionMatrix(predict(RandMod,NewTest),NewTest$classe)
 
 plot(RandMod,main="Cross Validation")
 plot(RandMod$finalModel,main = "Overall Error Converge")
-#Importance 
-varImp(RandMod)
 ```
 ![My Figure](CV.png)
 
 ![My Figure](OVConverg.png)
+
+```{r}
+#Importance 
+varImp(RandMod)
+```
+| **Variables**         | **Overall**|
+|----------------------:|-----------:|
+|  roll_belt            | 100.00     |
+| pitch_forearm         | 62.44      |
+| yaw_belt              | 58.31      |
+| magnet_dumbbell_z     | 48.81      |
+| pitch_belt            | 46.81      |
+| magnet_dumbbell_y     | 44.14      |
+| roll_forearm          | 41.41      |
+| accel_dumbbell_y      | 25.05      |
+| accel_forearm_x       | 19.27      |
+| roll_dumbbell         | 18.98      |
+| magnet_dumbbell_x     | 18.93      |
+| magnet_belt_z         | 16.76      |
+| accel_dumbbell_z      | 16.05      |
+| accel_belt_z          | 15.33      |
+| total_accel_dumbbell  | 14.55      |
+| magnet_belt_y         | 14.20      |
+| magnet_forearm_z      | 13.61      |
+| gyros_belt_z          | 11.98      |
+| yaw_arm               | 11.56      |
+| magnet_belt_x         | 11.35      |
 
 ##Bagging Model
 ```{r}
@@ -93,17 +118,40 @@ BagPred=confusionMatrix(predict(BAGMod,NewTest),NewTest$classe)
 #Importance 
 varImp(BAGMod)
 ```
+| **Variables**     | **Overall**|
+|------------------:|-----------:|
+| roll_belt         | 100.00     |
+| yaw_belt          |  81.09     |
+| pitch_belt        |  71.38     |
+| pitch_forearm     |  69.55     |
+| magnet_dumbbell_y |  63.92     |
+| magnet_dumbbell_z |  61.24     |
+| roll_forearm      |  55.56     |
+| accel_dumbbell_y  |  50.43     |
+| roll_dumbbell     |  40.56     |
+| accel_belt_z      |  37.95     |
+| magnet_belt_y     |  36.56     |
+| magnet_belt_z     |  32.26     |
+| magnet_dumbbell_x |  30.94     |
+| accel_dumbbell_z  |  26.67     |
+| accel_forearm_x   |  26.05     |
+| gyros_belt_z      |  23.34     |
+| yaw_arm           |  23.04     |
+| total_accel_belt  |  22.46     |
+| magnet_belt_x     |  21.67     |
+| accel_arm_x       |  21.21     |
 
-##Summary Accuaracy
 ```{r}
 Accuaracy <- data.frame(Tree=TreePred$overall[1], 
                     rf=RFPred$overall[1], 
                     bagging=BagPred$overall[1])
 Accuaracy
 ```
-Tree Accuaracy = 0.501402
-rf Accuaracy = 0.9908233
-bagging Accuaracy = 0.982284
+| **Model** | **Accuaracy** |
+|----------:|--------------:|
+|   Tree    |   0.501402    |
+|   rf      |   0.990823    |
+|  bagging  |   0.982284    |
 
 ##Cross Validation
 The cross validation graph shows that the model with 60 predictors is selected by the best accuracy.
