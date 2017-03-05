@@ -1,0 +1,115 @@
+---
+title: "Machine Learning Project"
+author: "Alexis Gortaire"
+date: "5 de marzo de 2017"
+output: html_document
+---
+#Executive Summary
+The goal of this exercise is to use the reading from several sensory data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, and to predict the outcome of the manner in which they did the exercise. This outcome is denoted by classe variable in the dataset. These participants were further asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). We have surveyed different machine learning techniques and concluded that Random Forest was the best model for predicting the manner in which the participants did the exercise.
+
+#Data loading 
+```{r,echo=FALSE}
+library(caret)
+setwd("C:/Users/ALEXIS/Documents/ALEXIS/CURSEA/NIVEL 8-Machine Learning/Proyecto")
+```
+We have tow data sets called: training and testing
+```{r}
+#Training Data
+DataTrain=read.csv("pml-training.csv",sep = ",")
+#Testing Data
+DataTest=read.csv("pml-testing.csv",sep = ",")
+nombres=DataTest$user_name
+```
+
+#Cleaning and Preprocessing Data
+```{r}
+#formats
+DataTrain[,7:159] = sapply(DataTrain[,7:159],as.numeric) 
+DataTest[,7:159] = sapply(DataTest[,7:159], as.numeric) 
+#select variables
+DataTrain = DataTrain[,8:dim(DataTrain)[2]]
+DataTest = DataTest[,8:dim(DataTest)[2]]
+
+#Imputing missing values
+NAS=sapply(DataTrain[,1:dim(DataTrain)[2]],function(x)table(is.na(x)))
+NAS=as.data.frame(do.call(rbind,NAS))
+NAS=subset(NAS,NAS$'TRUE'!=dim(DataTrain)[1])
+NAS=row.names(NAS)
+
+Imput=preProcess(DataTrain[,-dim(DataTrain)[2]],method ="knnImpute")
+ImputTrain=predict(Imput,DataTrain[,-dim(DataTrain)[2]])
+ImputTest=predict(Imput,DataTest[,-dim(DataTest)[2]])
+
+DataTrain=DataTrain[,!names(DataTrain)%in%NAS]
+DataTest=DataTest[,!names(DataTest)%in%NAS]
+DataTrain=cbind(DataTrain,ImputTrain[,NAS])
+DataTest=cbind(DataTest,ImputTest[,NAS])
+
+# Zero Variability
+ZV=nearZeroVar(DataTrain[,-dim(DataTrain)[2]])
+DataTrain=DataTrain[,-ZV]
+DataTest=DataTest[,-ZV]
+```
+
+#Select new training and testing data
+```{r}
+set.seed(pi)
+indexTrain=createDataPartition(DataTrain$classe,p=0.6,list = F)
+NewTrain=DataTrain[indexTrain,]
+NewTest=DataTrain[-indexTrain,]
+```
+
+#Construction and selecction model
+##Tree classification model
+```{r}
+library(rattle)
+TreeMod=train(classe ~ .,data=NewTrain, method="rpart")
+fancyRpartPlot(TreeMod$finalModel)
+TreePred=confusionMatrix(predict(TreeMod,NewTest),NewTest$classe)
+TreePred$overall[1]
+```
+
+## Random Forest model
+```{r}
+RandMod=train(classe ~ .,data=NewTrain, method="rf",trControl=trainControl(method = "cv",number = 3))
+RFPred=confusionMatrix(predict(RandMod,NewTest),NewTest$classe)
+
+plot(RandMod,main="Cross Validation")
+plot(RandMod$finalModel,main = "Overall Error Converge")
+#Importance 
+varImp(RandMod)
+```
+
+##Bagging Model
+```{r}
+BAGMod=train(classe ~ .,data=NewTrain, method="treebag",trControl=trainControl(method = "cv",number = 3))
+BagPred=confusionMatrix(predict(BAGMod,NewTest),NewTest$classe)
+#Importance 
+varImp(BAGMod)
+```
+
+##Summary Accuaracy
+```{r}
+Accuaracy <- data.frame(Tree=TreePred$overall[1], 
+                    rf=RFPred$overall[1], 
+                    bagging=BagPred$overall[1])
+Accuaracy
+```
+
+##Cross Validation
+The cross validation graph shows that the model with 60 predictors is selected by the best accuracy.
+##Overall error
+That graph tell us that the overall error converge at around 100 trees. So it is possible to speed up our algorithm by tuning the number of trees.
+##Selection
+How I show in Accuaracy object the best model is random forest with accuaracy of 0.99.
+
+#Prediction with model selected
+In this section, we use random forest model we built in last section to predict the test data and predict the class of exercise that the users did.
+
+```{r}
+DataTest$class=as.character(predict(RandMod,DataTest))
+table(DataTest$class,nombres)
+```
+
+#Conclusion
+We conclude that both the preprocess and the random forest is the best prediction model for our dataset. The error estimation obtained by random forest is conclusively lower than that of the other modellers we have surveyed. 
