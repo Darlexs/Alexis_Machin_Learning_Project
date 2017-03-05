@@ -65,6 +65,9 @@ NewTest=DataTrain[-indexTrain,]
 library(rattle)
 TreeMod=train(classe ~ .,data=NewTrain, method="rpart")
 fancyRpartPlot(TreeMod$finalModel)
+```
+![My Figure](tree.png)
+```{r}
 TreePred=confusionMatrix(predict(TreeMod,NewTest),NewTest$classe)
 TreePred$overall[1]
 ```
@@ -79,6 +82,9 @@ plot(RandMod$finalModel,main = "Overall Error Converge")
 #Importance 
 varImp(RandMod)
 ```
+![My Figure](CV.png)
+
+![My Figure](OVConverg.png)
 
 ##Bagging Model
 ```{r}
@@ -95,6 +101,9 @@ Accuaracy <- data.frame(Tree=TreePred$overall[1],
                     bagging=BagPred$overall[1])
 Accuaracy
 ```
+Tree Accuaracy = 0.501402
+rf Accuaracy = 0.9908233
+bagging Accuaracy = 0.982284
 
 ##Cross Validation
 The cross validation graph shows that the model with 60 predictors is selected by the best accuracy.
@@ -110,6 +119,13 @@ In this section, we use random forest model we built in last section to predict 
 DataTest$class=as.character(predict(RandMod,DataTest))
 table(DataTest$class,nombres)
 ```
+| **Class** | **adelmo** | **carlitos** | **charles** | **euricio** | **jeremy** | **pedro**|
+|----------:|-----------:|-------------:|------------:|------------:|-----------:|---------:|
+|     A     |          1 |            1 |           1 |           1 |          2 |        1 |
+|     B     |          0 |            2 |           0 |           2 |          2 |        2 |
+|     C     |          0 |            0 |           0 |           0 |          1 |        0 |
+|     D     |          0 |            0 |           0 |           0 |          1 |        0 |
+|     E     |          0 |            0 |           0 |           1 |          2 |        0 |
 
 #Conclusion
 We conclude that both the preprocess and the random forest is the best prediction model for our dataset. The error estimation obtained by random forest is conclusively lower than that of the other modellers we have surveyed. 
